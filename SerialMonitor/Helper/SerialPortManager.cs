@@ -1,11 +1,10 @@
-namespace SerialMonitor.Helper;
 
 using System;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
+namespace SerialMonitor.Helper;
 /// <summary>
 /// Универсальный класс для работы с COM-портом
 /// </summary>
@@ -104,12 +103,12 @@ public class SerialPortManager : IDisposable
             Connect();
         }
     }
-    
- 
+
+
     /// <summary>
     /// Подключение к COM-порту
     /// </summary>
-    public bool Connect()
+    public bool Connect(int sleep = 100)
     {
         try
         {
@@ -119,15 +118,15 @@ public class SerialPortManager : IDisposable
             InitializeSerialPort();
             _serialPort.Open();
 
-            // Небольшая задержка для стабилизации
-            Thread.Sleep(100);
 
-            // Очистка буферов
+            Thread.Sleep(sleep);
+
+
             _serialPort.DiscardInBuffer();
             _serialPort.DiscardOutBuffer();
             _receivedBuffer = "";
 
-            // Запуск фонового чтения (если нужно)
+
             _readCancellation = new CancellationTokenSource();
 
             OnConnectionChanged?.Invoke(this, true);
@@ -286,7 +285,7 @@ public class SerialPortManager : IDisposable
     public async Task<string> SendCommandWithResponseAsync(string command, string expectedResponse = null,
         int timeoutMs = 5000)
     {
-        var tcs = new TaskCompletionSource<string>();
+        TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
         string response = "";
 
         EventHandler<string> handler = null;
@@ -310,7 +309,7 @@ public class SerialPortManager : IDisposable
         }
 
         // Таймаут
-        var timeoutTask = Task.Delay(timeoutMs);
+        Task timeoutTask = Task.Delay(timeoutMs);
         var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
 
         if (completedTask == timeoutTask)

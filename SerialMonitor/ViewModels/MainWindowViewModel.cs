@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using AvaloniaEdit;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DynamicData;
+using SerialMonitor.Helper;
+using SerialMonitor.Structures;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Avalonia.Threading;
-using AvaloniaEdit;
-using SerialMonitor.Helper;
-using SerialMonitor.Structures;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using DynamicData;
 
 namespace SerialMonitor.ViewModels;
 
@@ -32,7 +31,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty] private string _connectionStatus = string.Empty;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private bool _isRefreshing;
 
     [ObservableProperty] private string _receivedData = string.Empty;
@@ -41,7 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel()
     {
         _winDevices = new WinDevices();
-        _ports = new ObservableCollection<ComPortInfo>();
+        _ports = [];
 
         _ = LoadDevicesAsync();
     }
@@ -52,6 +52,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (!string.IsNullOrWhiteSpace(ReceivedData) && _serialPortManager != null && _serialPortManager.IsConnected)
         {
             _serialPortManager.SendCommand(ReceivedData);
+            AppendLine("Write", $"{ReceivedData}");
             ReceivedData = string.Empty;
         }
     }
@@ -86,7 +87,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     [RelayCommand()]
     private async Task Connect()
     {
-        if(SelectedPort == null)
+        if (SelectedPort == null)
             return;
         if (_serialPortManager != null)
         {
@@ -106,42 +107,42 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
 
         _serialPortManager = new SerialPortManager(SelectedPort.ComPortName, 115200);
-        _serialPortManager.OnConnectionChanged += (s, connected) =>
+        _serialPortManager.OnConnectionChanged += async (s, connected) =>
         {
             Dispatcher.UIThread.Invoke(() => { IsConnected = connected; });
 
-            AppendLine($"Connection Changed: {IsConnected}");
-            Console.WriteLine($"Соединение: {(connected ? "установлено" : "разорвано")}");
+            await AppendLine("Connection Changed", $"{IsConnected}");
+
         };
-        _serialPortManager.OnDataReceived += (s, data) =>
+        _serialPortManager.OnDataReceived += async (s, data) =>
         {
-            AppendLine($"Получено: {data}");
-            Console.WriteLine($"Получено: {data}");
+            await AppendLine("Read", $"Получено: {data}");
+
         };
 
-        _serialPortManager.OnError += (s, error) =>
+        _serialPortManager.OnError += async (s, error) =>
         {
-            Console.WriteLine($"Error: {error}");
-            AppendLine($"Error: {error}");
+
+            await AppendLine("Error", $"Error: {error}");
         };
 
 
         if (_serialPortManager.Connect())
         {
-            //IsConnected = _serialPortManager.IsConnected;
+
             _lastComPortInfo = SelectedPort;
         }
 
 
-        await Task.Delay(100);
+
     }
 
-    async Task AppendLine(string line)
+    private async Task AppendLine(string Type, string line)
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Editor.Text += $"{DateTime.Now:HH:mm:ss}:{line}{Environment.NewLine}";
-            //Editor.Text += $"Новая строка: {DateTime.Now:HH:mm:ss}\n";
+            Editor.Text += $"{DateTime.Now:HH:mm:ss}:[{Type}]{line}{Environment.NewLine}";
+
         });
     }
 
