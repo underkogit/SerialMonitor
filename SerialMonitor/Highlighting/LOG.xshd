@@ -1,41 +1,43 @@
 <?xml version="1.0"?>
 <SyntaxDefinition name="LOG" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-	<Color name="Time" foreground="#fcc112" fontWeight="bold" />
-	<Color name="Direction" foreground="#569cd6" fontWeight="bold" />
-	<Color name="Tag" foreground="#00ff00" fontWeight="bold" />
-	<Color name="Status" foreground="#00ffff" />
-	<Color name="Number" foreground="#ff8080" />
-	<Color name="IP" foreground="#ce9178" />
-	<Color name="URL" foreground="#9cdcfe" />
-	<Color name="AngleBracket" foreground="#4ec9b0" />
-	<Color name="Garbage" foreground="#808080" italic="true" />
-	<Color name="Message" foreground="#dcdcdc" />
+	<Color name="Time" foreground="#569CD6" fontWeight="bold" />
+	<Color name="Text" foreground="#D4D4D4" fontWeight="normal" />
+	<Color name="Bool" foreground="#4EC9B0" fontWeight="normal" />
+	<Color name="Number" foreground="#B5CEA8" fontWeight="normal" />
+	<Color name="Bracket" foreground="#D4D4D4" fontWeight="normal" />
+	<Color name="Keyword" foreground="#C586C0" fontWeight="normal" />
 
 	<RuleSet>
-		<Rule color="Time">^\d{2}:\d{2}:\d{2}:</Rule>
-		<Rule color="Direction">(?&lt;=^\d{2}:\d{2}:\d{2}:)(Получено|Отправлено)</Rule>
-		<Rule color="Tag">\[[^\]]+\]</Rule>
-		<Rule color="AngleBracket">&lt;[^&gt;]+&gt;</Rule>
-		<Rule color="IP">\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b</Rule>
-		<Rule color="URL">https?://[^\s\]]+</Rule>
+		<Rule color="Time">^\d{2}:\d{2}:\d{2}</Rule>
 
-		<Keywords color="Status">
+		<Span color="Bracket" multiline="false">
+			<Begin>\[</Begin>
+			<End>\]</End>
+			<RuleSet>
+				<Keywords color="Keyword">
+					<Word>Read</Word>
+					<Word>Connection Changed</Word>
+					<Word>MSG</Word>
+				</Keywords>
+				<Keywords color="Bool">
+					<Word>True</Word>
+					<Word>False</Word>
+				</Keywords>
+				<Rule color="Number">\b\d+(?:\.\d+)?\b</Rule>
+			</RuleSet>
+		</Span>
+
+		<Keywords color="Keyword">
+			<Word>Read</Word>
+			<Word>Connection Changed</Word>
+			<Word>MSG</Word>
+		</Keywords>
+
+		<Keywords color="Bool">
 			<Word>True</Word>
 			<Word>False</Word>
-			<Word>Connected</Word>
-			<Word>Idle</Word>
-			<Word>Run</Word>
-			<Word>Hold</Word>
-			<Word>Alarm</Word>
-			<Word>Door</Word>
-			<Word>Check</Word>
-			<Word>Home</Word>
-			<Word>Sleep</Word>
-			<Word>ok</Word>
 		</Keywords>
 
 		<Rule color="Number">\b\d+(?:\.\d+)?\b</Rule>
-		<Rule color="Garbage">[^\x20-\x7E\r\n\t]+</Rule>
-		<Rule color="Message">.</Rule>
 	</RuleSet>
 </SyntaxDefinition>

@@ -116,14 +116,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         };
         _serialPortManager.OnDataReceived += async (s, data) =>
         {
-            await AppendLine("Read", $"Получено: {data}");
+            await AppendLine("Read", $"{data}");
 
         };
 
         _serialPortManager.OnError += async (s, error) =>
         {
 
-            await AppendLine("Error", $"Error: {error}");
+            await AppendLine("Error", $"{error}");
         };
 
 
@@ -141,7 +141,15 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Editor.Text += $"{DateTime.Now:HH:mm:ss}:[{Type}]{line}{Environment.NewLine}";
+            string time = $"{DateTime.Now:HH:mm:ss}";
+            while (true)
+            {
+                if (time.Length > 8)
+                    break;
+                time += " ";
+
+            }
+            Editor.Text += $"{time}   [{Type}]   {line}{Environment.NewLine}";
 
         });
     }
@@ -187,10 +195,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         });
     }
 
-    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    partial void OnSelectedPortChanged(ComPortInfo value)
     {
-        base.OnPropertyChanged(e);
-        Console.WriteLine($"Property changed: {e.PropertyName}");
+        if (SelectedPort == null)
+            return;
+        if (_serialPortManager != null)
+        {
+            _serialPortManager.Dispose();
+        }
     }
 
     partial void OnIsConnectedChanged(bool value)
