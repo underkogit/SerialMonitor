@@ -1,0 +1,1 @@
+g++ -o serial_terminal.exe main.cpp serialib.cpp -lws2_32 -std=c++11 -pthread

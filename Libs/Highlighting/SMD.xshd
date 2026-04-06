@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="SMD" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#74ba43" />
+  <Color name="Section" foreground="#4fc3f7" fontWeight="bold" />
+  <Color name="Number" foreground="#ffffff" />
+  <Color name="BoneIndex" foreground="#ffffff" />
+  <Color name="MaterialName" foreground="#ffeb3b" />
+  <Color name="Time" foreground="#ffffff" />
+
+  <RuleSet>
+    <!-- Comments -->
+    <Span color="Comment" begin="//" />
+    
+    <!-- Section headers -->
+    <Keywords color="Section">
+      <Word>version</Word>
+      <Word>nodes</Word>
+      <Word>skeleton</Word>
+      <Word>triangles</Word>
+      <Word>end</Word>
+    </Keywords>
+
+    <!-- Version number -->
+    <Rule color="Number">
+      (?&lt;=version\s+)\d+
+    </Rule>
+
+    <!-- Time values in skeleton section -->
+    <Rule color="Time">
+      (?&lt;=time\s+)\d+
+    </Rule>
+
+    <!-- Bone indices -->
+    <Rule color="BoneIndex">
+      ^\s*\d+(?=\s+")
+    </Rule>
+
+    <!-- Material names -->
+    <Span color="MaterialName">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+
+    <!-- Numbers (coordinates, weights, etc.) -->
+    <Rule color="Number">
+      -?\b\d+(\.\d+)?([eE][+-]?\d+)?\b
+    </Rule>
+
+    <!-- Bone names in quotes -->
+    <Span color="MaterialName">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+  </RuleSet>
+</SyntaxDefinition>

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="LOGS" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="ProcessTag" foreground="#00ff00" fontWeight="bold" />
+  <Color name="ProcessCreated" foreground="#ffff00" />
+  <Color name="FilePath" foreground="#c3915e" />
+  <Color name="Numbers" foreground="#ff8080" />
+  <Color name="Separator" foreground="#808080" />
+  <Color name="FileExtension" foreground="#90ffff" />
+  <Color name="Status" foreground="#00ffff" />
+  <Color name="Time" foreground="#fcc112" />
+  <RuleSet>
+    <!-- Process tags like [Process 2] -->
+    <Rule color="ProcessTag">
+      \[Process\s+\d+\]
+    </Rule>
+    
+    <!-- Process created line -->
+    <Rule color="ProcessCreated">
+      ^Process\s+created\s+\d+
+    </Rule>
+     <Rule color="Time">
+         (\d{2}:\d{2}:\d{2}\.\d{7})|(\[\d{2}:\d{2}:\d{2}\])
+     </Rule>
+    <!-- File paths -->
+    <Rule color="FilePath">
+      ([A-Za-z]:\\[^"\s]+)|(\"[A-Za-z]:\\[^"\s]+\")
+    </Rule>
+ 
+    <!-- Numbers (bytes, counts, etc.) -->
+    <Rule color="Numbers">
+      \b\d+(\.\d+)?\s*(bytes?|in\^\d+|vertices?|anims?|frames?|seq|eyeballs?|flexes?)\b
+    </Rule>
+    
+    <!-- File extensions -->
+    <Rule color="FileExtension">
+      \.\w{2,4}\b
+    </Rule>
+    
+    <!-- Separator lines -->
+    <Rule color="Separator">
+      ^-+$
+    </Rule>
+    
+    <!-- Status messages -->
+    <Keywords color="Status">
+      <Word>Completed</Word>
+      <Word>Building</Word>
+      <Word>Processing</Word>
+      <Word>Loading</Word>
+      <Word>Working</Word>
+      <Word>Generating</Word>
+      <Word>Found</Word>
+    </Keywords>
+  </RuleSet>
+</SyntaxDefinition>

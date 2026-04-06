@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="VMT" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#74ba43" />
+  <Color name="Shader" foreground="#4fc3f7" fontWeight="bold" />
+  <Color name="Number" foreground="#ffffff" />
+  <Color name="Parameter" foreground="#ffeb3b" />
+  <Color name="StringValue" foreground="#ffeb3b" />
+  <Color name="Bracket" foreground="#ffffff" />
+
+  <RuleSet>
+    <!-- Comments -->
+    <Span color="Comment" begin="//" />
+    
+    <!-- Curly brackets -->
+    <Keywords color="Bracket">
+      <Word>{</Word>
+      <Word>}</Word>
+    </Keywords>
+
+    <!-- Shader name (quoted string at beginning of line) -->
+    <Span color="Shader" multiline="false">
+      <Begin>^\s*"</Begin>
+      <End>"</End>
+    </Span>
+
+    <!-- Parameter names (starting with $) -->
+    <Span color="Parameter" multiline="false">
+      <Begin>"\$</Begin>
+      <End>"</End>
+    </Span>
+
+    <!-- String values (quoted strings that are not at line start) -->
+    <Span color="StringValue" multiline="false">
+      <Begin>(?&lt;=\s)"</Begin>
+      <End>"</End>
+    </Span>
+
+    <!-- Numbers -->
+    <Rule color="Number">
+      \b\d+(\.\d+)?\b
+    </Rule>
+
+    <!-- Boolean values -->
+    <Keywords color="Number">
+      <Word>0</Word>
+      <Word>1</Word>
+    </Keywords>
+  </RuleSet>
+</SyntaxDefinition>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="LOG" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Time" foreground="#fcc112" fontWeight="bold" />
+  <Color name="Tag" foreground="#00ff00" fontWeight="bold" />
+  <Color name="Keyword" foreground="#569cd6" />
+  <Color name="Status" foreground="#00ffff" />
+  <Color name="Numbers" foreground="#ff8080" />
+  <Color name="Separator" foreground="#808080" />
+  <Color name="Binary" foreground="#808080" italic="true" />
+  <Color name="Message" foreground="#dcdcdc" />
+  
+  <RuleSet>
+    <!-- Временная метка в начале строки: 00:06:19: -->
+    <Rule color="Time">
+      ^\d{2}:\d{2}:\d{2}:
+    </Rule>
+    
+    <!-- Ключевые слова после временной метки -->
+    <Rule color="Keyword">
+      (?&lt;=^\d{2}:\d{2}:\d{2}:)(Получено|Отправлено|Connection Changed|State|Error)
+    </Rule>
+    
+    <!-- Теги в квадратных скобках: [MSG:...], [MSG: текст] -->
+    <Rule color="Tag">
+      \[[A-Z_]+\s*:*[^\]]*\]
+    </Rule>
+    
+    <!-- Отдельные слова-статусы -->
+    <Keywords color="Status">
+      <Word>True</Word>
+      <Word>False</Word>
+      <Word>Connected</Word>
+      <Word>Started</Word>
+      <Word>Completed</Word>
+      <Word>OK</Word>
+      <Word>error</Word>
+      <Word>alarm</Word>
+    </Keywords>
+    
+    <!-- Числа -->
+    <Rule color="Numbers">
+      \b\d+(\.\d+)?\b
+    </Rule>
+    
+    <!-- Строка разделителей (если есть) -->
+    <Rule color="Separator">
+      ^-+$
+    </Rule>
+    
+    <!-- Бинарные/непечатаемые символы (можно опционально) -->
+    <Rule color="Binary">
+      [\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]
+    </Rule>
+    
+    <!-- Всё остальное как обычный текст -->
+    <Rule color="Message">
+      .
+    </Rule>
+  </RuleSet>
+</SyntaxDefinition>

@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="QC" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#6A9955" />
+  <Color name="String" foreground="#CE9178" />
+  <Color name="Keyword" foreground="#569CD6" fontWeight="bold" />
+  <Color name="Number" foreground="#B5CEA8" />
+  <Color name="Property" foreground="#9CDCFE" />
+
+  <RuleSet>
+    <!-- Comments -->
+    <Span color="Comment" begin="//" />
+    
+    <!-- Strings -->
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+
+    <!-- Keywords -->
+    <Keywords color="Keyword">
+      <Word>$modelname</Word>
+      <Word>$body</Word>
+      <Word>$bodygroup</Word>
+      <Word>$cdmaterials</Word>
+      <Word>$sequence</Word>
+      <Word>$collisionmodel</Word>
+      <Word>$staticprop</Word>
+      <Word>$surfaceprop</Word>
+      <Word>$scale</Word>
+      <Word>$origin</Word>
+      <Word>$keyvalues</Word>
+      <Word>$mass</Word>
+      <Word>$inertia</Word>
+      <Word>$damping</Word>
+      <Word>$contents</Word>
+      <Word>$rotdamping</Word>
+      <Word>$rootbone</Word>
+      <Word>$attachment</Word>
+      <Word>$bbox</Word>
+      <Word>$cbox</Word>
+      <Word>$eyeposition</Word>
+      <Word>$illumposition</Word>
+      <Word>$hbox</Word>
+      <Word>$autocenter</Word>
+      <Word>$externaltextures</Word>
+      <Word>$texturegroup</Word>
+      <Word>$controller</Word>
+      <Word>$animation</Word>
+      <Word>$weightlist</Word>
+      <Word>$normalizeweights</Word>
+      <Word>$includemodel</Word>
+      <Word>$lod</Word>
+      <Word>$shadowlod</Word>
+      <Word>$upaxis</Word>
+      <Word>$skipboneinbbox</Word>
+      <Word>$worldspace</Word>
+      <Word>$poseparameter</Word>
+      <Word>$ikchain</Word>
+      <Word>$ikautoplaylock</Word>
+      <Word>$jigglebone</Word>
+    </Keywords>
+
+    <!-- Properties and values -->
+    <Keywords color="Property">
+      <Word>fps</Word>
+      <Word>loop</Word>
+      <Word>activity</Word>
+      <Word>actweight</Word>
+      <Word>fadein</Word>
+      <Word>fadeout</Word>
+      <Word>addlayer</Word>
+      <Word>blendwidth</Word>
+      <Word>blend</Word>
+      <Word>delta</Word>
+      <Word>worldspace</Word>
+      <Word>post</Word>
+      <Word>predelta</Word>
+      <Word>autoplay</Word>
+      <Word>origin</Word>
+      <Word>rotate</Word>
+      <Word>angles</Word>
+      <Word>fixuploop</Word>
+      <Word>startloop</Word>
+      <Word>endloop</Word>
+      <Word>frame</Word>
+      <Word>weightlist</Word>
+      <Word>subtract</Word>
+      <Word>presubtract</Word>
+      <Word>cmdlist</Word>
+      <Word>motiontype</Word>
+      <Word>walkframe</Word>
+      <Word>LX</Word>
+      <Word>LY</Word>
+      <Word>LZ</Word>
+      <Word>AX</Word>
+      <Word>AY</Word>
+      <Word>AZ</Word>
+      <Word>event</Word>
+      <Word>options</Word>
+    </Keywords>
+
+    <!-- Numbers -->
+    <Rule color="Number">
+      \b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?
+    </Rule>
+  </RuleSet>
+</SyntaxDefinition><?xml version="1.0"?>

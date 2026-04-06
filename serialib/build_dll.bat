@@ -1,0 +1,1 @@
+g++ -shared -o serialib.dll serialib_wrapper.cpp serialib.cpp -lws2_32

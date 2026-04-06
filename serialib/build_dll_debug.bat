@@ -1,0 +1,1 @@
+g++ -shared -o serialib_debug.dll serialib_wrapper_debug.cpp serialib.cpp -lws2_32 -std=c++11

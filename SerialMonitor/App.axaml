@@ -1,0 +1,18 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:convertors="clr-namespace:SerialMonitor.Convertors"
+             x:Class="SerialMonitor.App"
+             RequestedThemeVariant="Default">
+
+    <Application.Resources>
+        <convertors:BoolToColorConverter x:Key="BoolToColorConverter" />
+        <convertors:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="Styles/TextBox.axaml" />
+
+    </Application.Styles>
+</Application>

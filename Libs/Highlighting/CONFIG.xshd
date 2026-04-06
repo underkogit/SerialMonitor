@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="CONFIG" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#74ba43" />
+  <Color name="Key" foreground="#ffffff" fontWeight="bold" />
+  <Color name="String" foreground="#c3915e" />
+  <Color name="Boolean" foreground="#00ff15" />
+  <Color name="Test" foreground="#90ffff" />
+  <Color name="Test2" foreground="#ff0000" />
+  <Color name="FFF" foreground="#ffee01" />
+  <RuleSet>
+    <Span color="Comment" begin="#" />
+    
+    <Rule color="Key">
+      ^[a-zA-Z_][a-zA-Z0-9_]*(?=\s*=)
+    </Rule>
+    <Rule color="Test">
+      -[a-zA-Z0-9_]+
+    </Rule>
+    <Rule color="Test2">
+      [0-9]+\.[0-9]+
+    </Rule>
+    <Keywords color="Test2">
+      <Word>привет</Word>
+       
+    </Keywords>
+    <Keywords color="FFF">
+       
+      <Word>мир</Word>
+    </Keywords>
+    <Keywords color="Boolean">
+      <Word>true</Word>
+      <Word>false</Word>
+    </Keywords>
+    
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+  </RuleSet>
+</SyntaxDefinition><?xml version="1.0"?>
