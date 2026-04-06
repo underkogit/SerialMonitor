@@ -23,7 +23,6 @@ public static class CustomHighlightingManager
     public static void RegisterAllHighlightings()
     {
         RegisterHighlighting("LOG.xshd", "LOG", ".log");
-       
     }
 
     public static void RegisterHighlighting(string fileName, string name, string extension)

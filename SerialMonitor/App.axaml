@@ -13,6 +13,6 @@
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="Styles/TextBox.axaml" />
-
+        <StyleInclude Source="Styles/Button.axaml" />
     </Application.Styles>
 </Application>

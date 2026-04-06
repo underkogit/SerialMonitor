@@ -6,10 +6,13 @@ using DynamicData;
 using SerialMonitor.Helper;
 using SerialMonitor.Structures;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using SerialMonitor.Enumes;
+using SerialMonitor.Services;
 
 namespace SerialMonitor.ViewModels;
 
@@ -18,31 +21,39 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly WinDevices _winDevices;
     private SerialPortManager? _serialPortManager = null;
     private ComPortInfo? _lastComPortInfo = null;
+    private readonly FileStorageService _fileStorageService = new FileStorageService();
     [ObservableProperty] private TextEditor _editor;
     [ObservableProperty] private bool _isConnected = false;
+    [ObservableProperty] private bool _isLogPanelVisible = true;
+
 
     [ObservableProperty] private string _connectButtonText = "Connect";
 
     public bool CanRefresh => !IsRefreshing;
 
     [ObservableProperty] private ObservableCollection<ComPortInfo> _ports;
+    [ObservableProperty] private ObservableCollection<string> _listCommands = new ObservableCollection<string>();
     [ObservableProperty] private ComPortInfo _selectedPort;
 
 
     [ObservableProperty] private string _connectionStatus = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private bool _isRefreshing;
 
     [ObservableProperty] private string _receivedData = string.Empty;
+
+    [ObservableProperty] private BaudRate _selectedBaudRate = BaudRate.CBR_115200;
+
+    public IEnumerable<BaudRate> BaudRateValues =>
+        (BaudRate[])Enum.GetValues(typeof(BaudRate));
 
 
     public MainWindowViewModel()
     {
         _winDevices = new WinDevices();
         _ports = [];
-
+        ListCommands = _fileStorageService.Load();
         _ = LoadDevicesAsync();
     }
 
@@ -51,12 +62,24 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (!string.IsNullOrWhiteSpace(ReceivedData) && _serialPortManager != null && _serialPortManager.IsConnected)
         {
-            _serialPortManager.SendCommand(ReceivedData);
-            AppendLine("Write", $"{ReceivedData}");
+            SendMessage(ReceivedData);
+            AppendLine("Write", $"{ReceivedData}", (data) =>
+            {
+                ListCommands.Add(data);
+
+                _fileStorageService.Save(ListCommands);
+            });
+
+
             ReceivedData = string.Empty;
         }
     }
 
+    public void SendMessage(string? message)
+    {
+        if (_serialPortManager != null && _serialPortManager.IsConnected && !string.IsNullOrEmpty(message))
+            _serialPortManager?.SendCommand(message);
+    }
 
     [RelayCommand(CanExecute = nameof(CanRefresh))]
     private async Task Refresh()
@@ -106,53 +129,41 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
 
 
-        _serialPortManager = new SerialPortManager(SelectedPort.ComPortName, 115200);
+        _serialPortManager = new SerialPortManager(SelectedPort.ComPortName, (int)SelectedBaudRate);
         _serialPortManager.OnConnectionChanged += async (s, connected) =>
         {
             Dispatcher.UIThread.Invoke(() => { IsConnected = connected; });
 
             await AppendLine("Connection Changed", $"{IsConnected}");
-
         };
-        _serialPortManager.OnDataReceived += async (s, data) =>
-        {
-            await AppendLine("Read", $"{data}");
+        _serialPortManager.OnDataReceived += async (s, data) => { await AppendLine("Read", $"{data}"); };
 
-        };
-
-        _serialPortManager.OnError += async (s, error) =>
-        {
-
-            await AppendLine("Error", $"{error}");
-        };
+        _serialPortManager.OnError += async (s, error) => { await AppendLine("Error", $"{error}"); };
 
 
         if (_serialPortManager.Connect())
         {
-
             _lastComPortInfo = SelectedPort;
         }
-
-
-
     }
 
-    private async Task AppendLine(string Type, string line)
+    private async Task AppendLine(string Type, string line, Action<string> com = null)
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             string time = $"{DateTime.Now:HH:mm:ss}";
             while (true)
             {
-                if (time.Length > 8)
+                if (time.Length > 10)
                     break;
                 time += " ";
-
             }
-            Editor.Text += $"{time}   [{Type}]   {line}{Environment.NewLine}";
 
+            Editor.Text += $"{time}   [{Type}]   {line}{Environment.NewLine}";
+            com?.Invoke(line);
         });
     }
+
 
     private async Task LoadDevicesAsync()
     {

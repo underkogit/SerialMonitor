@@ -19,18 +19,22 @@
     </Window.DataContext>
 
     <Panel Margin="5,5">
+
         <Grid RowDefinitions="Auto , *,Auto">
 
             <WrapPanel Grid.Row="0" HorizontalAlignment="Stretch"
                        VerticalAlignment="Center">
 
 
-                <Button Command="{Binding RefreshCommand}"
+                <Button Margin="2,0" Command="{Binding RefreshCommand}"
                         IsEnabled="{Binding CanRefresh}">
-                    <Svg MaxWidth="20" MaxHeight="20" Path="/Assets/reload.svg"
-                         Css=".Black { fill: #00000000; stroke: #ffffff}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Svg MaxWidth="20" MaxHeight="20" Path="/Assets/reload.svg"
+                             Css=".Black { fill: #00000000; stroke: #ffffff}" />
+                        <TextBlock Text="Reload" Margin="2,0" VerticalAlignment="Center" />
+                    </StackPanel>
                 </Button>
-                <ComboBox Margin="2,0,2,0"
+                <ComboBox Margin="2,0"
                           ItemsSource="{Binding Ports}"
                           SelectedItem="{Binding SelectedPort}"
                           MaxWidth="500">
@@ -43,21 +47,77 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Button Content="{Binding ConnectButtonText}" Command="{Binding ConnectCommand}" />
+
+                <ComboBox
+                    Margin="2,0"
+                    ItemsSource="{Binding BaudRateValues}"
+                    SelectedItem="{Binding SelectedBaudRate}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Button Margin="2,0" Content="{Binding ConnectButtonText}" Command="{Binding ConnectCommand}" />
 
             </WrapPanel>
             <Panel Grid.Row="1" Margin="0,5">
-                <avaloniaEdit:TextEditor x:Name="Editor" ShowLineNumbers="True" IsReadOnly="True" FontSize="15" />
+                <Grid>
+                    <avaloniaEdit:TextEditor Grid.Column="0" x:Name="Editor" ShowLineNumbers="True" IsReadOnly="True"
+                                             FontSize="15" />
+                    <Border IsVisible="{Binding IsLogPanelVisible}">
+                        <Grid ColumnDefinitions="*,1, Auto">
+                            <GridSplitter Grid.Column="1" Width="1" Background="Transparent" />
+
+                            <Grid MinWidth="300" Margin="2,0,0,0" Background="#1b1b1c" Grid.Column="2" ZIndex="10"
+                                  HorizontalAlignment="Stretch">
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding ListCommands}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Vertical" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button
+                                                    HorizontalAlignment="Stretch"
+                                                    Click="Button_OnClickSelectMessageItem" MinWidth="150"
+                                                    Content="{Binding}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
             </Panel>
 
 
-            <Panel Grid.Row="2" Background="#262626">
-                <TextBox x:Name="LogTextBox" Classes="Log" VerticalContentAlignment="Center"
+            <Grid Grid.Row="2" Background="#262626" ColumnDefinitions="*,Auto,Auto">
+
+                <TextBox x:Name="LogTextBox" Margin="2,0" Classes="Log" VerticalContentAlignment="Center"
                          Text="{Binding ReceivedData}"
                          Watermark="Data from COM port will appear here...">
 
                 </TextBox>
-            </Panel>
+                <Button Margin="2,0" Grid.Column="1" Click="Button_OnClickSendMessage">
+                    <StackPanel Orientation="Horizontal">
+                        <Svg MaxWidth="20" MaxHeight="20" Path="/Assets/send.svg" />
+                        <TextBlock Text="Send" Margin="10,0" />
+
+                    </StackPanel>
+                </Button>
+
+                <Button Margin="2,0" Grid.Column="2" Click="Button_OnClickShowListMessages">
+                    <Svg MaxWidth="20" MaxHeight="20" Path="/Assets/box_list.svg"
+                         Css=".Black { fill: #00000000; stroke: #ffffff}" />
+                </Button>
+            </Grid>
         </Grid>
     </Panel>
 

@@ -71,4 +71,27 @@ public partial class MainWindow : Window
         _cts?.Dispose();
         _viewModel?.Dispose();
     }
+
+    private void Button_OnClickShowListMessages(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.IsLogPanelVisible = !viewModel.IsLogPanelVisible;
+        }
+    }
+
+    private void Button_OnClickSendMessage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.SendMessage(LogTextBox.Text);
+            LogTextBox.Text = String.Empty;
+        }
+            
+    }
+
+    private void Button_OnClickSelectMessageItem(object? sender, RoutedEventArgs e)
+    {
+        LogTextBox.Text = (sender as Button)?.Content as string;
+    }
 }
