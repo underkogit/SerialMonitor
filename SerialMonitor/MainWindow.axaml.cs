@@ -87,11 +87,37 @@ public partial class MainWindow : Window
             viewModel.SendMessage(LogTextBox.Text);
             LogTextBox.Text = String.Empty;
         }
-            
     }
 
     private void Button_OnClickSelectMessageItem(object? sender, RoutedEventArgs e)
     {
         LogTextBox.Text = (sender as Button)?.Content as string;
+    }
+
+    private void Button_OnClickRemoveItem(object? sender, RoutedEventArgs e)
+    {
+        var button = sender as Button;
+
+        var border = button?.Parent?.Parent as Border;
+        var itemToRemove = border?.DataContext as string;
+
+        if (itemToRemove != null && DataContext is MainWindowViewModel vm)
+        {
+            vm.ListCommands.Remove(itemToRemove);
+            vm.SaveListCommands();
+        }
+    }
+
+    private void Button_OnClickSelectSendCommand(object? sender, RoutedEventArgs e)
+    {
+        var button = sender as Button;
+        var border = button?.Parent?.Parent as Border;
+        var itemToRemove = border?.DataContext as string;
+        
+        if (DataContext is MainWindowViewModel viewModel &&
+            !string.IsNullOrEmpty(itemToRemove))
+        {
+            viewModel.SendMessage(itemToRemove);
+        }
     }
 }

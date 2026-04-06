@@ -24,7 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly FileStorageService _fileStorageService = new FileStorageService();
     [ObservableProperty] private TextEditor _editor;
     [ObservableProperty] private bool _isConnected = false;
-    [ObservableProperty] private bool _isLogPanelVisible = true;
+    [ObservableProperty] private bool _isLogPanelVisible = false;
 
 
     [ObservableProperty] private string _connectButtonText = "Connect";
@@ -57,6 +57,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _ = LoadDevicesAsync();
     }
 
+    public void SaveListCommands()
+    {
+        _fileStorageService.Save(ListCommands);
+    }
+
     [RelayCommand]
     private void OnEnterPressed()
     {
@@ -67,7 +72,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 ListCommands.Add(data);
 
-                _fileStorageService.Save(ListCommands);
+                SaveListCommands();
             });
 
 
