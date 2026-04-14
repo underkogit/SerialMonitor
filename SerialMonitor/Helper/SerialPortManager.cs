@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,10 @@ public class SerialPortManager : IDisposable
     private string _receivedBuffer = "";
     private CancellationTokenSource _readCancellation;
 
+    private int _duplications = 0;
+
+    private string _lastLine = string.Empty;
+
     // События
     public event EventHandler<string> OnDataReceived;
     public event EventHandler<byte[]> OnBinaryDataReceived;
@@ -26,8 +31,11 @@ public class SerialPortManager : IDisposable
     // Статус соединения
     public bool IsConnected => _serialPort?.IsOpen ?? false;
 
+
     // Настройки порта
     public string PortName { get; private set; }
+    [Range(0,100)]
+    public int MaxDuplications { get; set; } = 10;
     public int BaudRate { get; private set; }
     public Parity Parity { get; set; } = Parity.None;
     public int DataBits { get; set; } = 8;
@@ -214,6 +222,19 @@ public class SerialPortManager : IDisposable
                 if (!string.IsNullOrEmpty(line))
                 {
                     OnDataReceived?.Invoke(this, line);
+
+                    if (line == _lastLine)
+                    {
+                        _duplications++;
+                    }
+
+                    if (_duplications > MaxDuplications)
+                    {
+                        this.Disconnect();
+                        OnError?.Invoke(this, $"Disconnect: Maximum ({MaxDuplications}) duplicates reached");
+                    }
+
+                    _lastLine = line;
                 }
             }
         }

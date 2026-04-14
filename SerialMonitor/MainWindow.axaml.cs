@@ -20,12 +20,21 @@ namespace SerialMonitor;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _viewModel;
-    private CancellationTokenSource _cts;
+
 
     public MainWindow()
     {
         InitializeComponent();
+        this.Loaded += OnLoadAsync;
         LogTextBox.AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+    }
+
+    private async void OnLoadAsync(object? sender, RoutedEventArgs routedEventArgs)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.InitializeAsync();
+        }
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
@@ -67,8 +76,7 @@ public partial class MainWindow : Window
     {
         base.OnUnloaded(e);
 
-        _cts?.Cancel();
-        _cts?.Dispose();
+
         _viewModel?.Dispose();
     }
 
@@ -84,7 +92,7 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
-            viewModel.SendMessage(LogTextBox.Text);
+            viewModel.SendMessageComPort(LogTextBox.Text);
             LogTextBox.Text = String.Empty;
         }
     }
@@ -113,11 +121,11 @@ public partial class MainWindow : Window
         var button = sender as Button;
         var border = button?.Parent?.Parent as Border;
         var itemToRemove = border?.DataContext as string;
-        
+
         if (DataContext is MainWindowViewModel viewModel &&
             !string.IsNullOrEmpty(itemToRemove))
         {
-            viewModel.SendMessage(itemToRemove);
+            viewModel.SendMessageComPort(itemToRemove);
         }
     }
 }
