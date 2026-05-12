@@ -1,30 +1,38 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO.Ports;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace SerialMonitor.Helper;
 
+/// <summary>
+/// Универсальный класс для работы с COM-портом
+/// </summary>
 public class SerialPortManager : IDisposable
 {
     private SerialPort _serialPort;
-    private readonly object _lockObject = new();
+    private readonly object _lockObject = new object();
     private bool _isDisposed = false;
     private string _receivedBuffer = "";
     private CancellationTokenSource _readCancellation;
+
     private int _duplications = 0;
+
     private string _lastLine = string.Empty;
 
+    // События
     public event EventHandler<string> OnDataReceived;
     public event EventHandler<byte[]> OnBinaryDataReceived;
     public event EventHandler<string> OnError;
     public event EventHandler<bool> OnConnectionChanged;
     public event EventHandler<SerialError> OnPortError;
 
+    // Статус соединения
     public bool IsConnected => _serialPort?.IsOpen ?? false;
 
+
+    // Настройки порта
     public string PortName { get; private set; }
     [Range(0, 100)] public int MaxDuplications { get; set; } = 10;
     public int BaudRate { get; private set; }
@@ -35,10 +43,17 @@ public class SerialPortManager : IDisposable
     public int ReadTimeout { get; set; } = 1000;
     public int WriteTimeout { get; set; } = 1000;
     public string NewLine { get; set; } = "\r\n";
+
+    // Режимы работы
     public bool EnableDtr { get; set; } = true;
     public bool EnableRts { get; set; } = true;
-    public bool AutoNewLine { get; set; } = true;
+    public bool AutoNewLine { get; set; } = true; // Автоматически добавлять \r\n к командам
 
+    /// <summary>
+    /// Конструктор класса
+    /// </summary>
+    /// <param name="portName">Имя COM-порта (например, "COM3")</param>
+    /// <param name="baudRate">Скорость передачи</param>
     public SerialPortManager(string portName, int baudRate = 9600)
     {
         PortName = portName;
@@ -46,53 +61,79 @@ public class SerialPortManager : IDisposable
         InitializeSerialPort();
     }
 
+    /// <summary>
+    /// Инициализация COM-порта
+    /// </summary>
     private void InitializeSerialPort()
     {
-        if (_serialPort != null) return;
-
-        _serialPort = new SerialPort
+        if (_serialPort == null)
         {
-            PortName = PortName,
-            BaudRate = BaudRate,
-            DataBits = DataBits,
-            Parity = Parity,
-            StopBits = StopBits,
-            Handshake = Handshake,
-            ReadTimeout = ReadTimeout,
-            WriteTimeout = WriteTimeout,
-            DtrEnable = EnableDtr,
-            RtsEnable = EnableRts,
-            NewLine = NewLine
-        };
+            _serialPort = new SerialPort
+            {
+                PortName = PortName,
+                BaudRate = BaudRate,
+                DataBits = DataBits,
+                Parity = Parity,
+                StopBits = StopBits,
+                Handshake = Handshake,
+                ReadTimeout = ReadTimeout,
+                WriteTimeout = WriteTimeout,
+                DtrEnable = EnableDtr,
+                RtsEnable = EnableRts,
+                NewLine = NewLine
+            };
 
-        _serialPort.DataReceived += SerialPort_DataReceived;
-        _serialPort.ErrorReceived += SerialPort_ErrorReceived;
+            _serialPort.DataReceived += SerialPort_DataReceived;
+            _serialPort.ErrorReceived += SerialPort_ErrorReceived;
+        }
     }
 
+    /// <summary>
+    /// Обновление настроек порта
+    /// </summary>
     public void UpdateSettings()
     {
-        var wasConnected = IsConnected;
-        if (wasConnected) Disconnect();
+        bool wasConnected = IsConnected;
+
+        if (wasConnected)
+        {
+            Disconnect();
+        }
 
         _serialPort?.Dispose();
         _serialPort = null;
+
         InitializeSerialPort();
 
-        if (wasConnected) Connect();
+        if (wasConnected)
+        {
+            Connect();
+        }
     }
 
+
+    /// <summary>
+    /// Подключение к COM-порту
+    /// </summary>
     public bool Connect(int sleep = 100)
     {
         try
         {
-            if (IsConnected) Disconnect();
+            if (IsConnected)
+                Disconnect();
 
             InitializeSerialPort();
             _serialPort.Open();
+
+
             Thread.Sleep(sleep);
+
+
             _serialPort.DiscardInBuffer();
             _serialPort.DiscardOutBuffer();
             _receivedBuffer = "";
+
+
             _readCancellation = new CancellationTokenSource();
 
             OnConnectionChanged?.Invoke(this, true);
@@ -105,10 +146,14 @@ public class SerialPortManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Отключение от COM-порта
+    /// </summary>
     public void Disconnect()
     {
         try
         {
+            // Остановка фонового чтения
             _readCancellation?.Cancel();
             _readCancellation?.Dispose();
             _readCancellation = null;
@@ -127,19 +172,29 @@ public class SerialPortManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Обработчик получения данных
+    /// </summary>
     private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
     {
         try
         {
-            if (_serialPort.BytesToRead <= 0) return;
+            // Чтение байтов для бинарного режима
+            if (_serialPort.BytesToRead > 0)
+            {
+                byte[] buffer = new byte[_serialPort.BytesToRead];
+                _serialPort.Read(buffer, 0, buffer.Length);
 
-            var buffer = new byte[_serialPort.BytesToRead];
-            _serialPort.Read(buffer, 0, buffer.Length);
+                // Событие для бинарных данных
+                OnBinaryDataReceived?.Invoke(this, buffer);
 
-            OnBinaryDataReceived?.Invoke(this, buffer);
-
-            var data = System.Text.Encoding.UTF8.GetString(buffer);
-            if (!string.IsNullOrEmpty(data)) ProcessTextData(data);
+                // Конвертируем в строку и отправляем текстовое событие
+                string data = System.Text.Encoding.UTF8.GetString(buffer);
+                if (!string.IsNullOrEmpty(data))
+                {
+                    ProcessTextData(data);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -147,34 +202,46 @@ public class SerialPortManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Обработка текстовых данных
+    /// </summary>
     private void ProcessTextData(string data)
     {
         lock (_lockObject)
         {
             _receivedBuffer += data;
-            var lines = _receivedBuffer.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-            _receivedBuffer = lines.Last();
 
-            foreach (var line in lines.Take(lines.Length - 1))
+            // Разбиваем на строки
+            string[] lines = _receivedBuffer.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            _receivedBuffer = lines[lines.Length - 1]; // Оставляем неполную строку
+
+            for (int i = 0; i < lines.Length - 1; i++)
             {
-                var trimmedLine = line.Trim();
-                if (string.IsNullOrEmpty(trimmedLine)) continue;
-
-                OnDataReceived?.Invoke(this, trimmedLine);
-
-                if (trimmedLine == _lastLine) _duplications++;
-
-                if (_duplications > MaxDuplications)
+                string line = lines[i].Trim();
+                if (!string.IsNullOrEmpty(line))
                 {
-                    Disconnect();
-                    OnError?.Invoke(this, $"Disconnect: Maximum ({MaxDuplications}) duplicates reached");
-                }
+                    OnDataReceived?.Invoke(this, line);
 
-                _lastLine = trimmedLine;
+                    if (line == _lastLine)
+                    {
+                        _duplications++;
+                    }
+
+                    if (_duplications > MaxDuplications)
+                    {
+                        this.Disconnect();
+                        OnError?.Invoke(this, $"Disconnect: Maximum ({MaxDuplications}) duplicates reached");
+                    }
+
+                    _lastLine = line;
+                }
             }
         }
     }
 
+    /// <summary>
+    /// Отправка команды
+    /// </summary>
     public bool SendCommand(string command, bool addNewLine = true)
     {
         if (!IsConnected)
@@ -187,7 +254,15 @@ public class SerialPortManager : IDisposable
         {
             lock (_lockObject)
             {
-                _serialPort.Write(addNewLine && AutoNewLine ? command + NewLine : command);
+                if (addNewLine && AutoNewLine)
+                {
+                    _serialPort.Write(command + NewLine);
+                }
+                else
+                {
+                    _serialPort.Write(command);
+                }
+
                 return true;
             }
         }
@@ -198,6 +273,9 @@ public class SerialPortManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Отправка бинарных данных
+    /// </summary>
     public bool SendBinaryData(byte[] data)
     {
         if (!IsConnected)
@@ -221,16 +299,20 @@ public class SerialPortManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Отправка команды с ожиданием ответа
+    /// </summary>
     public async Task<string> SendCommandWithResponseAsync(string command, string expectedResponse = null,
         int timeoutMs = 5000)
     {
-        var tcs = new TaskCompletionSource<string>();
-        var response = "";
+        TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
+        string response = "";
 
         EventHandler<string> handler = null;
         handler = (s, data) =>
         {
             response += data + "\n";
+
             if (expectedResponse == null || response.Contains(expectedResponse))
             {
                 OnDataReceived -= handler;
@@ -246,54 +328,86 @@ public class SerialPortManager : IDisposable
             return null;
         }
 
-        var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(timeoutMs));
+        // Таймаут
+        Task timeoutTask = Task.Delay(timeoutMs);
+        var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
 
-        if (completedTask == tcs.Task) return await tcs.Task;
+        if (completedTask == timeoutTask)
+        {
+            OnDataReceived -= handler;
+            return null;
+        }
 
-        OnDataReceived -= handler;
-        return null;
+        return await tcs.Task;
     }
 
+
+    /// <summary>
+    /// Очистка буферов
+    /// </summary>
     public void ClearBuffers()
     {
-        if (!IsConnected) return;
-
-        lock (_lockObject)
+        if (IsConnected)
         {
-            _serialPort.DiscardInBuffer();
-            _serialPort.DiscardOutBuffer();
-            _receivedBuffer = "";
+            lock (_lockObject)
+            {
+                _serialPort.DiscardInBuffer();
+                _serialPort.DiscardOutBuffer();
+                _receivedBuffer = "";
+            }
         }
     }
 
+    /// <summary>
+    /// Установка DTR
+    /// </summary>
     public void SetDtr(bool enable)
     {
-        if (IsConnected) _serialPort.DtrEnable = enable;
+        if (IsConnected)
+        {
+            _serialPort.DtrEnable = enable;
+        }
     }
 
+    /// <summary>
+    /// Установка RTS
+    /// </summary>
     public void SetRts(bool enable)
     {
-        if (IsConnected) _serialPort.RtsEnable = enable;
+        if (IsConnected)
+        {
+            _serialPort.RtsEnable = enable;
+        }
     }
 
+    /// <summary>
+    /// Обработчик ошибок порта
+    /// </summary>
     private void SerialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
     {
         OnPortError?.Invoke(this, e.EventType);
         OnError?.Invoke(this, $"Ошибка COM-порта: {e.EventType}");
     }
 
+    /// <summary>
+    /// Освобождение ресурсов
+    /// </summary>
     public void Dispose()
     {
-        if (_isDisposed) return;
-
-        Disconnect();
-        _serialPort?.Dispose();
-        _readCancellation?.Dispose();
-        _isDisposed = true;
+        if (!_isDisposed)
+        {
+            Disconnect();
+            _serialPort?.Dispose();
+            _readCancellation?.Dispose();
+            _isDisposed = true;
+        }
 
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Получение доступных COM-портов
+    /// </summary>
     public static string[] GetAvailablePorts()
     {
         return SerialPort.GetPortNames();

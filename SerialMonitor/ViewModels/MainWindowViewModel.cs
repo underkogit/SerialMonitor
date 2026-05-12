@@ -77,7 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 SaveListCommands();
             });
 
-
+            _serialPortManager?.SendCommand(ReceivedData);
             ReceivedData = string.Empty;
         }
     }
