@@ -1,18 +1,10 @@
 using System;
-using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Highlighting;
-using SerialMonitor.Enumes;
-using SerialMonitor.Helper;
 using SerialMonitor.Services;
-using SerialMonitor.Structures;
 using SerialMonitor.ViewModels;
 
 namespace SerialMonitor;
@@ -21,37 +13,25 @@ public partial class MainWindow : Window
 {
     private MainWindowViewModel? _viewModel;
 
-
     public MainWindow()
     {
         InitializeComponent();
-        this.Loaded += OnLoadAsync;
         LogTextBox.AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
-    }
-
-    private async void OnLoadAsync(object? sender, RoutedEventArgs routedEventArgs)
-    {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            await viewModel.InitializeAsync();
-        }
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)
-        {
-            e.Handled = true;
-            if (DataContext is MainWindowViewModel viewModel)
-            {
-                viewModel.EnterPressedCommand.Execute(null);
-            }
-        }
+        if (e.Key != Key.Enter) return;
+
+        e.Handled = true;
+        if (DataContext is MainWindowViewModel viewModel)
+            viewModel.EnterPressedCommand.Execute(null);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
+
         CustomHighlightingManager.RegisterAllHighlightings();
         Editor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("LOG");
         Editor.Options.IndentationSize = 4;
@@ -61,31 +41,25 @@ public partial class MainWindow : Window
 
         try
         {
-            _viewModel = new MainWindowViewModel();
-            _viewModel.Editor = Editor;
+            _viewModel = new MainWindowViewModel { Editor = Editor };
             DataContext = _viewModel;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error initializing MainWindow: {ex.Message}");
+            Debug.WriteLine($"Error initializing MainWindow: {ex.Message}");
         }
     }
-
 
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         base.OnUnloaded(e);
-
-
         _viewModel?.Dispose();
     }
 
     private void Button_OnClickShowListMessages(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel viewModel)
-        {
             viewModel.IsLogPanelVisible = !viewModel.IsLogPanelVisible;
-        }
     }
 
     private void Button_OnClickSendMessage(object? sender, RoutedEventArgs e)
@@ -93,7 +67,7 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel viewModel)
         {
             viewModel.SendMessageComPort(LogTextBox.Text);
-            LogTextBox.Text = String.Empty;
+            LogTextBox.Text = string.Empty;
         }
     }
 
@@ -104,10 +78,9 @@ public partial class MainWindow : Window
 
     private void Button_OnClickRemoveItem(object? sender, RoutedEventArgs e)
     {
-        var button = sender as Button;
+        if (sender is not Button button) return;
 
-        var border = button?.Parent?.Parent as Border;
-        var itemToRemove = border?.DataContext as string;
+        var itemToRemove = (button.Parent?.Parent as Border)?.DataContext as string;
 
         if (itemToRemove != null && DataContext is MainWindowViewModel vm)
         {
@@ -118,14 +91,11 @@ public partial class MainWindow : Window
 
     private void Button_OnClickSelectSendCommand(object? sender, RoutedEventArgs e)
     {
-        var button = sender as Button;
-        var border = button?.Parent?.Parent as Border;
-        var itemToRemove = border?.DataContext as string;
+        if (sender is not Button button) return;
 
-        if (DataContext is MainWindowViewModel viewModel &&
-            !string.IsNullOrEmpty(itemToRemove))
-        {
-            viewModel.SendMessageComPort(itemToRemove);
-        }
+        var command = (button.Parent?.Parent as Border)?.DataContext as string;
+
+        if (DataContext is MainWindowViewModel viewModel && !string.IsNullOrEmpty(command))
+            viewModel.SendMessageComPort(command);
     }
 }

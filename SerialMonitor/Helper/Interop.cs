@@ -10,7 +10,7 @@ public static class Interop
     public const uint DIGCF_DEVICEINTERFACE = 0x00000010;
     public const uint SPDRP_FRIENDLYNAME = 0x0000000C;
 
-    public static Guid GuidComPort = new Guid(
+    public static Guid GuidComPort = new(
         0x86e0d1e0, 0x8089, 0x11d0,
         0x9c, 0xe4, 0x08, 0x00, 0x3e, 0x30, 0x1f, 0x73
     );

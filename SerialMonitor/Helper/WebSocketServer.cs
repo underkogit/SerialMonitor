@@ -84,7 +84,6 @@ public class WebSocketServer : IDisposable
         var buffer = new byte[4096];
 
         while (webSocket.State == WebSocketState.Open)
-        {
             try
             {
                 var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cts.Token);
@@ -112,7 +111,6 @@ public class WebSocketServer : IDisposable
                 Console.WriteLine($"Error receiving message: {ex.Message}");
                 break;
             }
-        }
 
         Console.WriteLine($"Connection handler completed for client. State: {webSocket.State}");
     }
@@ -120,7 +118,6 @@ public class WebSocketServer : IDisposable
     public async Task SendToClientAsync(WebSocket client, string message)
     {
         if (client?.State == WebSocketState.Open)
-        {
             try
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
@@ -132,11 +129,8 @@ public class WebSocketServer : IDisposable
             {
                 Console.WriteLine($"Send error: {ex.Message}");
             }
-        }
         else
-        {
             Console.WriteLine($"Client not in Open state. State: {client?.State}");
-        }
     }
 
     public async Task SendToAllAsync(string message)
@@ -154,9 +148,7 @@ public class WebSocketServer : IDisposable
         var clientsToRemove = new List<WebSocket>();
 
         foreach (var client in clientsSnapshot)
-        {
             if (client.State == WebSocketState.Open)
-            {
                 try
                 {
                     await client.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true,
@@ -166,23 +158,14 @@ public class WebSocketServer : IDisposable
                 {
                     clientsToRemove.Add(client);
                 }
-            }
             else
-            {
                 clientsToRemove.Add(client);
-            }
-        }
 
         if (clientsToRemove.Any())
-        {
             lock (_clientsLock)
             {
-                foreach (var client in clientsToRemove)
-                {
-                    _connectedClients.Remove(client);
-                }
+                foreach (var client in clientsToRemove) _connectedClients.Remove(client);
             }
-        }
     }
 
     public async Task SendToAllExceptAsync(string message, WebSocket excludeClient)
@@ -198,9 +181,7 @@ public class WebSocketServer : IDisposable
         var clientsToRemove = new List<WebSocket>();
 
         foreach (var client in clientsSnapshot)
-        {
             if (client != excludeClient && client.State == WebSocketState.Open)
-            {
                 try
                 {
                     await client.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true,
@@ -210,23 +191,13 @@ public class WebSocketServer : IDisposable
                 {
                     clientsToRemove.Add(client);
                 }
-            }
-            else if (client.State != WebSocketState.Open)
-            {
-                clientsToRemove.Add(client);
-            }
-        }
+            else if (client.State != WebSocketState.Open) clientsToRemove.Add(client);
 
         if (clientsToRemove.Any())
-        {
             lock (_clientsLock)
             {
-                foreach (var client in clientsToRemove)
-                {
-                    _connectedClients.Remove(client);
-                }
+                foreach (var client in clientsToRemove) _connectedClients.Remove(client);
             }
-        }
     }
 
     public async Task SendToAllAsync(byte[] data, WebSocketMessageType messageType = WebSocketMessageType.Binary)
@@ -241,9 +212,7 @@ public class WebSocketServer : IDisposable
         var clientsToRemove = new List<WebSocket>();
 
         foreach (var client in clientsSnapshot)
-        {
             if (client.State == WebSocketState.Open)
-            {
                 try
                 {
                     await client.SendAsync(new ArraySegment<byte>(data), messageType, true, CancellationToken.None);
@@ -252,23 +221,14 @@ public class WebSocketServer : IDisposable
                 {
                     clientsToRemove.Add(client);
                 }
-            }
             else
-            {
                 clientsToRemove.Add(client);
-            }
-        }
 
         if (clientsToRemove.Any())
-        {
             lock (_clientsLock)
             {
-                foreach (var client in clientsToRemove)
-                {
-                    _connectedClients.Remove(client);
-                }
+                foreach (var client in clientsToRemove) _connectedClients.Remove(client);
             }
-        }
     }
 
     public int GetConnectedClientsCount()
@@ -292,9 +252,7 @@ public class WebSocketServer : IDisposable
     public async Task CloseClientAsync(WebSocket client, string reason = "Server closing")
     {
         if (client.State == WebSocketState.Open)
-        {
             await client.CloseAsync(WebSocketCloseStatus.NormalClosure, reason, CancellationToken.None);
-        }
     }
 
     public async Task CloseAllClientsAsync(string reason = "Server shutting down")
@@ -306,9 +264,7 @@ public class WebSocketServer : IDisposable
         }
 
         foreach (var client in clients)
-        {
             if (client.State == WebSocketState.Open)
-            {
                 try
                 {
                     await client.CloseAsync(WebSocketCloseStatus.NormalClosure, reason, CancellationToken.None);
@@ -317,8 +273,6 @@ public class WebSocketServer : IDisposable
                 {
                     Console.WriteLine($"Error closing client: {ex.Message}");
                 }
-            }
-        }
 
         lock (_clientsLock)
         {
@@ -357,10 +311,7 @@ public class WebSocketServer : IDisposable
 
         lock (_clientsLock)
         {
-            foreach (var client in _connectedClients)
-            {
-                client.Dispose();
-            }
+            foreach (var client in _connectedClients) client.Dispose();
 
             _connectedClients.Clear();
         }

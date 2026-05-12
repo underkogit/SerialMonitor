@@ -19,10 +19,10 @@ namespace SerialMonitor.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly WinDevices _winDevices;
-    private WebSocketServer _socketServer;
+
     private SerialPortManager? _serialPortManager = null;
     private ComPortInfo? _lastComPortInfo = null;
-    private readonly FileStorageService _fileStorageService = new FileStorageService();
+    private readonly FileStorageService _fileStorageService = new();
     [ObservableProperty] private TextEditor? _editor;
     [ObservableProperty] private bool _isConnected = false;
     [ObservableProperty] private bool _isLogPanelVisible = false;
@@ -53,37 +53,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel()
     {
         _winDevices = new WinDevices();
-        _socketServer = new WebSocketServer();
-
-        _socketServer.MessageReceived +=  (sender, e) =>
-        {
-             AppendLine("TCP Write", $"{e.Message}");
-        };
-
-        _socketServer.ClientConnected += async (sender, e) =>
-        {
-            // Console.WriteLine($"Клиент подключен. Всего клиентов: {_socketServer.GetConnectedClientsCount()}");
-            // await AppendLine("TCP Write", $"{e.Message}");
-            // await _socketServer.SendToAllAsync(
-            //     $"Новый клиент подключился! Всего клиентов: {_socketServer.GetConnectedClientsCount()}");
-        };
 
         _ports = [];
         ListCommands = _fileStorageService.Load();
         _ = LoadDevicesAsync();
     }
 
-    public async Task InitializeAsync()
-    {
-        try
-        {
-            await _socketServer.StartAsync();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-    }
 
     public void SaveListCommands()
     {
@@ -95,7 +70,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (!string.IsNullOrWhiteSpace(ReceivedData) && _serialPortManager != null && _serialPortManager.IsConnected)
         {
-            
             AppendLine("Write", $"{ReceivedData}", (data) =>
             {
                 ListCommands.Add(data);
@@ -140,17 +114,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
-    [RelayCommand()]
+    [RelayCommand]
     private async Task Connect()
     {
         if (SelectedPort == null)
             return;
         if (_serialPortManager != null)
         {
-            if (_lastComPortInfo != SelectedPort)
-            {
-                _serialPortManager.Dispose();
-            }
+            if (_lastComPortInfo != SelectedPort) _serialPortManager.Dispose();
 
             if (_serialPortManager.IsConnected)
             {
@@ -170,33 +141,19 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
             await AppendLine("Connection Changed", $"{IsConnected}");
         };
-        _serialPortManager.OnDataReceived += async (s, data) =>
-        {
-            await AppendLine("Read", $"{data}");
-        };
+        _serialPortManager.OnDataReceived += async (s, data) => { await AppendLine("Read", $"{data}"); };
 
         _serialPortManager.OnError += async (s, error) => { await AppendLine("Error", $"{error}"); };
 
 
-        if (_serialPortManager.Connect())
-        {
-            _lastComPortInfo = SelectedPort;
-        }
+        if (_serialPortManager.Connect()) _lastComPortInfo = SelectedPort;
     }
 
     private async Task AppendLine(string type, string line, Action<string>? com = null)
     {
-        string time = $"{DateTime.Now:HH:mm:ss}";
-        while (true)
-        {
-            if (time.Length > 10)
-                break;
-            time += " ";
-        }
+        var lineContent = $"{$"{DateTime.Now:HH:mm:ss}".PadRight(11)}   [{type}]   {line}{Environment.NewLine}";
 
-        string lineContent = $"{time}   [{type}]   {line}{Environment.NewLine}";
-        Console.WriteLine($"Клиент подключен. Всего клиентов: {_socketServer.GetConnectedClientsCount()}");
-         
+
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (Editor != null) Editor.Text += lineContent;
@@ -213,10 +170,10 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             try
             {
-                ObservableCollection<ComPortInfo>? devices = _winDevices.TryGetDevices();
+                var devices = _winDevices.TryGetDevices();
                 System.Diagnostics.Debug.WriteLine($"Loaded {devices?.Count ?? 0} devices");
 
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     if (Ports == null) return;
 
@@ -233,15 +190,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                         Ports.AddRange(validDevices);
                     }
 
-                    if (!Ports.Any())
-                    {
-                        ConnectionStatus = "No devices found. Check connection.";
-                    }
+                    if (!Ports.Any()) ConnectionStatus = "No devices found. Check connection.";
                 });
             }
             catch (Exception ex)
             {
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => { ConnectionStatus = $"Load error: {ex.Message}"; });
+                Dispatcher.UIThread.Post(() => { ConnectionStatus = $"Load error: {ex.Message}"; });
             }
         });
     }
@@ -250,10 +204,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (SelectedPort == null)
             return;
-        if (_serialPortManager != null)
-        {
-            _serialPortManager.Dispose();
-        }
+        if (_serialPortManager != null) _serialPortManager.Dispose();
     }
 
     partial void OnIsConnectedChanged(bool value)
@@ -264,6 +215,5 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         _winDevices?.Dispose();
-        _socketServer?.Dispose();
     }
 }

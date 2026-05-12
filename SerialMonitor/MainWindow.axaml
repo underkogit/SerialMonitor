@@ -3,13 +3,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:SerialMonitor.ViewModels"
-        xmlns:convertors="clr-namespace:SerialMonitor.Convertors"
         xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SerialMonitor.MainWindow"
         Background="#1b1b1c"
         Title="Serial Monitor"
-
+        Icon="/Assets/icon.png"
         x:DataType="viewModels:MainWindowViewModel">
     <Design.DataContext>
         <viewModels:MainWindowViewModel />
@@ -121,9 +120,7 @@
 
                 <TextBox x:Name="LogTextBox" Margin="2,0" Classes="Log" VerticalContentAlignment="Center"
                          Text="{Binding ReceivedData}"
-                         Watermark="Data from COM port will appear here...">
-
-                </TextBox>
+                         Watermark="Data from COM port will appear here..." />
                 <Button Classes="G" Margin="2,0" Grid.Column="1" Click="Button_OnClickSendMessage">
                     <StackPanel Orientation="Horizontal">
                         <Svg MaxWidth="20" MaxHeight="20" Path="/Assets/send.svg" />

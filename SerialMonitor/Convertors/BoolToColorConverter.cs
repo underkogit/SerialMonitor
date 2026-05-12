@@ -9,10 +9,7 @@ public class BoolToColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isConnected)
-        {
-            return isConnected ? Brushes.Green : Brushes.Gray;
-        }
+        if (value is bool isConnected) return isConnected ? Brushes.Green : Brushes.Gray;
 
         return Brushes.Gray;
     }
